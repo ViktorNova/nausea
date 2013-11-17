@@ -1,10 +1,10 @@
-/* $Id: spectrum.c,v 1.1 2013/11/16 22:23:36 lostd Exp $ */
+/* $Id: spectrum.c,v 1.2 2013/11/17 21:55:59 lostd Exp $ */
 
 /*
  * ~/.mpdconf:
  * audio_output {
  *     type "fifo"
- *     name "myfifo"
+ *     name "Pipe"
  *     path "~/.mpd/mpd.fifo"
  *     format "44100:16:1"
  * }
@@ -21,7 +21,7 @@
 
 #include <fftw3.h>
 
-unsigned usec = 1000000 / 25; /* 25 fps */
+unsigned msec = 1000 / 25; /* 25 fps */
 unsigned samples = 2048; /* mono */
 int samplerate = 44100;
 int bits = 16;
@@ -42,7 +42,7 @@ struct frame {
 };
 
 void
-auvis_init(struct frame *fr)
+spectrum_init(struct frame *fr)
 {
 	fr->fd = open(fname, O_RDONLY | O_NONBLOCK);
 	if (fr->fd == -1)
@@ -56,7 +56,7 @@ auvis_init(struct frame *fr)
 }
 
 void
-auvis_done(struct frame *fr)
+spectrum_done(struct frame *fr)
 {
 	fftw_destroy_plan(fr->plan);
 	fftw_free(fr->in);
@@ -68,7 +68,7 @@ auvis_done(struct frame *fr)
 }
 
 void
-auvis_update(struct frame *fr)
+spectrum_update(struct frame *fr)
 {
 	int16_t buf[samples];
 	ssize_t n, nsamples;
@@ -91,7 +91,7 @@ auvis_update(struct frame *fr)
 }
 
 void
-auvis_draw(struct frame *fr)
+spectrum_draw(struct frame *fr)
 {
 	unsigned i, j;
 	unsigned freqs_per_col;
@@ -108,7 +108,7 @@ auvis_draw(struct frame *fr)
 		                  fr->out[i][1] * fr->out[i][1])
 		             / 100000 * fr->height / 4;
 	
-	clear();
+	erase();
 	attron(A_BOLD);
 	for (i = 0; i < fr->width; i++) {
 		size_t bar_height = 0;
@@ -144,7 +144,7 @@ main(int argc, char *argv[])
 
 	/* init fftw3 */
 	memset(&fr, 0, sizeof(fr));
-	auvis_init(&fr);
+	spectrum_init(&fr);
 
 	/* init curses */
 	initscr();
@@ -154,20 +154,19 @@ main(int argc, char *argv[])
 	intrflush(stdscr, FALSE);
 	keypad(stdscr, TRUE);
 	curs_set(FALSE); /* hide cursor */
-	//nodelay(stdscr, TRUE);
+	timeout(msec);
 
 	while (!die) {
-		//if (getch() == 'q')
-		//	die = 1;
+		if (getch() == 'q')
+			die = 1;
 
-		auvis_update(&fr);
-		auvis_draw(&fr);
-		usleep(usec);
+		spectrum_update(&fr);
+		spectrum_draw(&fr);
 	}
 
 	endwin(); /* restore terminal */
 
-	auvis_done(&fr); /* destroy context */
+	spectrum_done(&fr); /* destroy context */
 
 	return (0);
 }
