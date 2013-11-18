@@ -35,8 +35,8 @@ struct frame {
 /* We assume the screen is 100 pixels in the y direction.
  * To follow the curses convetion (0, 0) is in the top left
  * corner of the screen.  The `min' and `max' values correspond
- * to percentages.  To illustrate this the [0, 40) range gives
- * the top 40% of the screen to the color red.  These values
+ * to percentages.  To illustrate this the [0, 20) range gives
+ * the top 20% of the screen to the color red.  These values
  * are scaled automatically in the draw() routine to the actual
  * size of the terminal window. */
 static struct color_range {
