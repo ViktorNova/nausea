@@ -1,7 +1,7 @@
-/* $Id: spectrum.c,v 1.2 2013/11/17 21:55:59 lostd Exp $ */
+/* $Id: spectrum.c,v 1.3 2013/11/18 11:01:51 lostd Exp $ */
 
 /*
- * ~/.mpdconf:
+ * Add to mpd.conf:
  * audio_output {
  *     type "fifo"
  *     name "Pipe"
@@ -22,7 +22,7 @@
 #include <fftw3.h>
 
 unsigned msec = 1000 / 25; /* 25 fps */
-unsigned samples = 2048; /* mono */
+unsigned nsamples = 2048; /* mono */
 int samplerate = 44100;
 int bits = 16;
 int channels = 1;
@@ -35,6 +35,7 @@ struct frame {
 	size_t width;
 	size_t height;
 	size_t nresult;
+	int16_t *buf;
 	unsigned *res;
 	double *in;
 	fftw_complex *out;
@@ -48,11 +49,12 @@ spectrum_init(struct frame *fr)
 	if (fr->fd == -1)
 		err(1, "open");
 
-	fr->nresult = samples / 2 + 1;
+	fr->nresult = nsamples / 2 + 1;
+	fr->buf = malloc(nsamples * sizeof(int16_t));
 	fr->res = malloc(fr->nresult * sizeof(unsigned));
-	fr->in = fftw_malloc(samples * sizeof(double));
+	fr->in = fftw_malloc(nsamples * sizeof(double));
 	fr->out = fftw_malloc(fr->nresult * sizeof(fftw_complex));
-	fr->plan = fftw_plan_dft_r2c_1d(samples, fr->in, fr->out, FFTW_ESTIMATE);
+	fr->plan = fftw_plan_dft_r2c_1d(nsamples, fr->in, fr->out, FFTW_ESTIMATE);
 }
 
 void
@@ -62,6 +64,7 @@ spectrum_done(struct frame *fr)
 	fftw_free(fr->in);
 	fftw_free(fr->out);
 
+	free(fr->buf);
 	free(fr->res);
 
 	close(fr->fd);
@@ -70,19 +73,18 @@ spectrum_done(struct frame *fr)
 void
 spectrum_update(struct frame *fr)
 {
-	int16_t buf[samples];
-	ssize_t n, nsamples;
+	ssize_t n, gotsamples;
 	unsigned i, j;
 
-	n = read(fr->fd, buf, sizeof(buf));
+	n = read(fr->fd, fr->buf, nsamples * sizeof(int16_t));
 	if (n == -1)
 		return;
 
-	nsamples = n / sizeof(int16_t);
+	gotsamples = n / sizeof(int16_t);
 
-	for (i = 0, j = 0; i < samples; i++) {
-		if (j < nsamples)
-			fr->in[i] = buf[j++];
+	for (i = 0, j = 0; i < nsamples; i++) {
+		if (j < gotsamples)
+			fr->in[i] = fr->buf[j++];
 		else
 			fr->in[i] = 0;
 	}
@@ -96,6 +98,7 @@ spectrum_draw(struct frame *fr)
 	unsigned i, j;
 	unsigned freqs_per_col;
 
+	/* read dimensions to catch window resize */
 	fr->width = COLS;
 	fr->height = LINES;
 
@@ -112,18 +115,18 @@ spectrum_draw(struct frame *fr)
 	attron(A_BOLD);
 	for (i = 0; i < fr->width; i++) {
 		size_t bar_height = 0;
-		size_t start_y;
-		size_t stop_y;
+		size_t ybegin, yend;
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 		for (j = 0; j < freqs_per_col; j++)
 			bar_height += fr->res[i * freqs_per_col + j];
 		bar_height = MIN(bar_height / freqs_per_col, fr->height);
-		start_y = fr->height - bar_height;
-		stop_y = MIN(bar_height + start_y, fr->height);
+		ybegin = fr->height - bar_height;
+		yend = MIN(bar_height + ybegin, fr->height);
+#undef MIN
 
 		/* output symbols */
-		for (j = start_y; j < stop_y; j++) {
+		for (j = ybegin; j < yend; j++) {
 			move(j, i);
 			printw("%c", symbol);
 		}
