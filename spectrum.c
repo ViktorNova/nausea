@@ -1,15 +1,5 @@
 /* $Id: spectrum.c,v 1.3 2013/11/18 11:01:51 lostd Exp $ */
 
-/*
- * Add to mpd.conf:
- * audio_output {
- *     type "fifo"
- *     name "Pipe"
- *     path "~/.mpd/mpd.fifo"
- *     format "44100:16:1"
- * }
- */
-
 #include <err.h>
 #include <curses.h>
 #include <fcntl.h>
@@ -25,14 +15,11 @@
 
 static unsigned msec = 1000 / 25; /* 25 fps */
 static unsigned nsamples = 2048; /* mono */
-static int samplerate = 44100;
-static int bits = 16;
-static int channels = 1;
 static char symbol = '|';
-static int die = 0;
-static char *fname = "/tmp/mpd.fifo";
+static char *fname = "/tmp/audio.fifo";
 static char *argv0;
 static int colors;
+static int die;
 
 struct frame {
 	int fd;

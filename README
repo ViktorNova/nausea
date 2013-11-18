@@ -1,8 +1,8 @@
 # spectrum
 
-This is a simple spectrum visualizer for the mpd music daemon.  It was
-originally inspired by the visualizer screen of ncmpcpp.  It depends on
-the fftw3 and curses libraries.
+This is a simple audio spectrum visualizer.  It works well with the mpd
+music player daemon.  It was originally inspired by the visualizer
+screen of ncmpcpp.  It depends on the fftw3 and curses libraries.
 
 You need to add the following to your mpd.conf.  The format is important
 because it's the only one supported for now.
@@ -10,7 +10,7 @@ because it's the only one supported for now.
     audio_output {
         type "fifo"
         name "Pipe"
-        path "/tmp/mpd.fifo"
+        path "/tmp/audio.fifo"
         format "44100:16:1"
     }
 
@@ -18,7 +18,7 @@ Then start spectrum with:
 
     $ spectrum
 
-or specify the path of your mpd fifo with:
+Alternatively specify the path of your mpd fifo with:
 
     $ spectrum <path-to-fifo>
 
