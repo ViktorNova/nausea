@@ -14,7 +14,7 @@
 #define LEN(x) (sizeof (x) / sizeof *(x))
 
 static unsigned msec = 1000 / 25; /* 25 fps */
-static unsigned nsamples = 2048; /* mono */
+static unsigned nsamples = 44100 * 2; /* stereo */
 static char symbol = '|';
 static char *fname = "/tmp/audio.fifo";
 static char *argv0;
