@@ -162,10 +162,15 @@ draw(struct frame *fr)
 	
 	/* scale each frequency to screen */
 #define BARSCALE 0.2
-	for (i = 0; i < nsamples / 2; i++)
+	for (i = 0; i < nsamples / 2; i++) {
+		/* cabs() essentially */
 		fr->res[i] = sqrt(fr->out[i][0] * fr->out[i][0] +
-		                  fr->out[i][1] * fr->out[i][1])
-		             / 100000 * fr->height * BARSCALE;
+		                  fr->out[i][1] * fr->out[i][1]);
+		/* normalize it */
+		fr->res[i] /= nsamples;
+		/* scale it */
+		fr->res[i] *= fr->height * BARSCALE;
+	}
 #undef BARSCALE
 	
 	erase();
