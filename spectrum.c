@@ -241,8 +241,11 @@ main(int argc, char *argv[])
 	timeout(msec);
 
 	if (colors) {
-		if (has_colors() == FALSE)
-			goto out;
+		if (has_colors() == FALSE) {
+			endwin();
+			done(&fr);
+			errx(1, "terminal does not support colors");
+		}
 		start_color();
 		for (i = 0; i < LEN(color_ranges); i++) {
 			cr = &color_ranges[i];
@@ -258,7 +261,6 @@ main(int argc, char *argv[])
 		draw(&fr);
 	}
 
-out:
 	endwin(); /* restore terminal */
 
 	done(&fr); /* destroy context */
