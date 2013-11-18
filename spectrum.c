@@ -64,9 +64,9 @@ static struct color_range {
 	int scaled_min;
 	int scaled_max;
 } color_ranges[] = {
-	{ 1, 0,  40,  COLOR_RED,    COLOR_BLACK },
-	{ 2, 40, 70,  COLOR_YELLOW, COLOR_BLACK },
-	{ 3, 70, 100, COLOR_GREEN,  COLOR_BLACK }
+	{ 1, 0,  20,  COLOR_RED,    COLOR_BLACK },
+	{ 2, 20, 60,  COLOR_YELLOW, COLOR_BLACK },
+	{ 3, 60, 100, COLOR_GREEN,  COLOR_BLACK }
 };
 
 static void
