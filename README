@@ -10,12 +10,16 @@ because it's the only one supported for now.
     audio_output {
         type "fifo"
         name "Pipe"
-        path "~/.mpd/mpd.fifo"
+        path "/tmp/mpd.fifo"
         format "44100:16:1"
     }
 
 Then start spectrum with:
 
-    $ spectrum ~/.mpd/mpd.fifo
+    $ spectrum
+
+or specify the path of your mpd fifo with:
+
+    $ spectrum <path-to-fifo>
 
 Enjoy!

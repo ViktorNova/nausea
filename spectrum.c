@@ -28,7 +28,8 @@ int bits = 16;
 int channels = 1;
 char symbol = '|';
 int die = 0;
-char *fname = NULL;
+char *fname = "/tmp/mpd.fifo";
+char *argv0;
 
 struct frame {
 	int fd;
@@ -135,15 +136,33 @@ spectrum_draw(struct frame *fr)
 	refresh();
 }
 
+static void
+usage(void)
+{
+	fprintf(stderr, "usage: %s [-h] [mpdfifo]\n", argv0);
+	fprintf(stderr, "fifo default path is `/tmp/mpd.fifo'\n");
+	exit(1);
+}
+
 int
 main(int argc, char *argv[])
 {
 	int c, i;
 	struct frame fr;
 
-	if (argc != 2)
-		errx(1, "usage: %s mpdfifo", argv[0]);
-	fname = argv[1];
+	argv0 = argv[0];
+	while (--argc > 0 && (*++argv)[0] == '-')
+		while ((c = *++argv[0]))
+			switch (c) {
+			case 'h':
+				/* fall-through */
+			default:
+				usage();
+			}
+	if (argc == 1)
+		fname = argv[0];
+	else if (argc > 1)
+		usage();
 
 	/* init fftw3 */
 	memset(&fr, 0, sizeof(fr));
