@@ -21,6 +21,8 @@
 
 #include <fftw3.h>
 
+#define LEN(x) (sizeof (x) / sizeof *(x))
+
 static unsigned msec = 1000 / 25; /* 25 fps */
 static unsigned nsamples = 2048; /* mono */
 static int samplerate = 44100;
@@ -126,7 +128,7 @@ setcolor(int on, int y)
 	if (!colors)
 		return;
 
-	for (i = 0; i < sizeof(color_ranges) / sizeof(color_ranges[0]); i++) {
+	for (i = 0; i < LEN(color_ranges); i++) {
 		cr = &color_ranges[i];
 		if (y >= cr->scaled_min && y < cr->scaled_max) {
 			if (on)
@@ -146,7 +148,7 @@ draw(struct frame *fr)
 	struct color_range *cr;
 
 	/* scale color ranges */
-	for (i = 0; i < sizeof(color_ranges) / sizeof(color_ranges[0]); i++) {
+	for (i = 0; i < LEN(color_ranges); i++) {
 		cr = &color_ranges[i];
 		cr->scaled_min = cr->min * LINES / 100;
 		cr->scaled_max = cr->max * LINES / 100;
@@ -242,7 +244,7 @@ main(int argc, char *argv[])
 		if (has_colors() == FALSE)
 			goto out;
 		start_color();
-		for (i = 0; i < sizeof(color_ranges) / sizeof(color_ranges[0]); i++) {
+		for (i = 0; i < LEN(color_ranges); i++) {
 			cr = &color_ranges[i];
 			init_pair(cr->pair, cr->fg, cr->bg);
 		}
