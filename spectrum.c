@@ -21,16 +21,16 @@
 
 #include <fftw3.h>
 
-unsigned msec = 1000 / 25; /* 25 fps */
-unsigned nsamples = 2048; /* mono */
-int samplerate = 44100;
-int bits = 16;
-int channels = 1;
-char symbol = '|';
-int die = 0;
-char *fname = "/tmp/mpd.fifo";
-char *argv0;
-int colors;
+static unsigned msec = 1000 / 25; /* 25 fps */
+static unsigned nsamples = 2048; /* mono */
+static int samplerate = 44100;
+static int bits = 16;
+static int channels = 1;
+static char symbol = '|';
+static int die = 0;
+static char *fname = "/tmp/mpd.fifo";
+static char *argv0;
+static int colors;
 
 struct frame {
 	int fd;
@@ -51,7 +51,7 @@ struct frame {
  * the top 40% of the screen to the color red.  These values
  * are scaled automatically in the draw() routine to the actual
  * size of the terminal window. */
-struct color_range {
+static struct color_range {
 	short pair; /* index in the color table */
 	int min;    /* min % */
 	int max;    /* max % */
@@ -67,7 +67,7 @@ struct color_range {
 	{ 3, 70, 100, COLOR_GREEN,  COLOR_BLACK }
 };
 
-void
+static void
 spectrum_init(struct frame *fr)
 {
 	fr->fd = open(fname, O_RDONLY | O_NONBLOCK);
@@ -82,7 +82,7 @@ spectrum_init(struct frame *fr)
 	fr->plan = fftw_plan_dft_r2c_1d(nsamples, fr->in, fr->out, FFTW_ESTIMATE);
 }
 
-void
+static void
 spectrum_done(struct frame *fr)
 {
 	fftw_destroy_plan(fr->plan);
@@ -95,7 +95,7 @@ spectrum_done(struct frame *fr)
 	close(fr->fd);
 }
 
-void
+static void
 spectrum_update(struct frame *fr)
 {
 	ssize_t n, gotsamples;
@@ -117,7 +117,7 @@ spectrum_update(struct frame *fr)
 	fftw_execute(fr->plan);
 }
 
-void
+static void
 spectrum_setcolor(int on, int y)
 {
 	unsigned i;
@@ -138,7 +138,7 @@ spectrum_setcolor(int on, int y)
 	}
 }
 
-void
+static void
 spectrum_draw(struct frame *fr)
 {
 	unsigned i, j;
