@@ -30,6 +30,7 @@ char symbol = '|';
 int die = 0;
 char *fname = "/tmp/mpd.fifo";
 char *argv0;
+int colors;
 
 struct frame {
 	int fd;
@@ -41,6 +42,29 @@ struct frame {
 	double *in;
 	fftw_complex *out;
 	fftw_plan plan;
+};
+
+/* We assume the screen is 100 pixels in the y direction.
+ * To follow the curses convetion (0, 0) is in the top left
+ * corner of the screen.  The `min' and `max' values correspond
+ * to percentages.  To illustrate this the [0, 40) range gives
+ * the top 40% of the screen to the color red.  These values
+ * are scaled automatically in the draw() routine to the actual
+ * size of the terminal window. */
+struct color_range {
+	short pair; /* index in the color table */
+	int min;    /* min % */
+	int max;    /* max % */
+	short fg;   /* foreground color */
+	short bg;   /* background color */
+
+	/* these are calculated internally, do not set */
+	int scaled_min;
+	int scaled_max;
+} color_ranges[] = {
+	{ 1, 0,  40,  COLOR_RED,    COLOR_BLACK },
+	{ 2, 40, 70,  COLOR_YELLOW, COLOR_BLACK },
+	{ 3, 70, 100, COLOR_GREEN,  COLOR_BLACK }
 };
 
 void
@@ -94,10 +118,39 @@ spectrum_update(struct frame *fr)
 }
 
 void
+spectrum_setcolor(int on, int y)
+{
+	unsigned i;
+	struct color_range *cr;
+
+	if (!colors)
+		return;
+
+	for (i = 0; i < sizeof(color_ranges) / sizeof(color_ranges[0]); i++) {
+		cr = &color_ranges[i];
+		if (y >= cr->scaled_min && y < cr->scaled_max) {
+			if (on)
+				attron(COLOR_PAIR(cr->pair));
+			else
+				attroff(COLOR_PAIR(cr->pair));
+			return;
+		}
+	}
+}
+
+void
 spectrum_draw(struct frame *fr)
 {
 	unsigned i, j;
 	unsigned freqs_per_col;
+	struct color_range *cr;
+
+	/* scale color ranges */
+	for (i = 0; i < sizeof(color_ranges) / sizeof(color_ranges[0]); i++) {
+		cr = &color_ranges[i];
+		cr->scaled_min = cr->min * LINES / 100;
+		cr->scaled_max = cr->max * LINES / 100;
+	}
 
 	/* read dimensions to catch window resize */
 	fr->width = COLS;
@@ -129,7 +182,9 @@ spectrum_draw(struct frame *fr)
 		/* output symbols */
 		for (j = ybegin; j < yend; j++) {
 			move(j, i);
+			spectrum_setcolor(1, j);
 			printw("%c", symbol);
+			spectrum_setcolor(0, j);
 		}
 	}
 	attroff(A_BOLD);
@@ -139,7 +194,7 @@ spectrum_draw(struct frame *fr)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [-h] [mpdfifo]\n", argv0);
+	fprintf(stderr, "usage: %s [-hc] [mpdfifo]\n", argv0);
 	fprintf(stderr, "fifo default path is `/tmp/mpd.fifo'\n");
 	exit(1);
 }
@@ -147,13 +202,18 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
-	int c, i;
+	int c;
+	unsigned i;
 	struct frame fr;
+	struct color_range *cr;
 
 	argv0 = argv[0];
 	while (--argc > 0 && (*++argv)[0] == '-')
 		while ((c = *++argv[0]))
 			switch (c) {
+			case 'c':
+				colors = 1;
+				break;
 			case 'h':
 				/* fall-through */
 			default:
@@ -178,6 +238,16 @@ main(int argc, char *argv[])
 	curs_set(FALSE); /* hide cursor */
 	timeout(msec);
 
+	if (colors) {
+		if (has_colors() == FALSE)
+			goto out;
+		start_color();
+		for (i = 0; i < sizeof(color_ranges) / sizeof(color_ranges[0]); i++) {
+			cr = &color_ranges[i];
+			init_pair(cr->pair, cr->fg, cr->bg);
+		}
+	}
+
 	while (!die) {
 		if (getch() == 'q')
 			die = 1;
@@ -186,6 +256,7 @@ main(int argc, char *argv[])
 		spectrum_draw(&fr);
 	}
 
+out:
 	endwin(); /* restore terminal */
 
 	spectrum_done(&fr); /* destroy context */
