@@ -148,13 +148,17 @@ draw(struct frame *fr)
 	fr->height = LINES;
 
 	/* take most of the left part of the band */
-	freqs_per_col = fr->nresult / fr->width * 6 / 10;
+#define BANDCUT 0.9
+	freqs_per_col = fr->nresult / fr->width * BANDCUT;
+#undef BANDCUT
 	
 	/* scale each frequency to screen */
+#define BARSCALE 0.2
 	for (i = 0; i < fr->nresult; i++)
 		fr->res[i] = sqrt(fr->out[i][0] * fr->out[i][0] +
 		                  fr->out[i][1] * fr->out[i][1])
-		             / 100000 * fr->height / 4;
+		             / 100000 * fr->height * BARSCALE;
+#undef BARSCALE
 	
 	erase();
 	attron(A_BOLD);
