@@ -68,7 +68,7 @@ static struct color_range {
 };
 
 static void
-spectrum_init(struct frame *fr)
+init(struct frame *fr)
 {
 	fr->fd = open(fname, O_RDONLY | O_NONBLOCK);
 	if (fr->fd == -1)
@@ -83,7 +83,7 @@ spectrum_init(struct frame *fr)
 }
 
 static void
-spectrum_done(struct frame *fr)
+done(struct frame *fr)
 {
 	fftw_destroy_plan(fr->plan);
 	fftw_free(fr->in);
@@ -96,7 +96,7 @@ spectrum_done(struct frame *fr)
 }
 
 static void
-spectrum_update(struct frame *fr)
+update(struct frame *fr)
 {
 	ssize_t n, gotsamples;
 	unsigned i, j;
@@ -118,7 +118,7 @@ spectrum_update(struct frame *fr)
 }
 
 static void
-spectrum_setcolor(int on, int y)
+setcolor(int on, int y)
 {
 	unsigned i;
 	struct color_range *cr;
@@ -139,7 +139,7 @@ spectrum_setcolor(int on, int y)
 }
 
 static void
-spectrum_draw(struct frame *fr)
+draw(struct frame *fr)
 {
 	unsigned i, j;
 	unsigned freqs_per_col;
@@ -182,9 +182,9 @@ spectrum_draw(struct frame *fr)
 		/* output symbols */
 		for (j = ybegin; j < yend; j++) {
 			move(j, i);
-			spectrum_setcolor(1, j);
+			setcolor(1, j);
 			printw("%c", symbol);
-			spectrum_setcolor(0, j);
+			setcolor(0, j);
 		}
 	}
 	attroff(A_BOLD);
@@ -226,7 +226,7 @@ main(int argc, char *argv[])
 
 	/* init fftw3 */
 	memset(&fr, 0, sizeof(fr));
-	spectrum_init(&fr);
+	init(&fr);
 
 	/* init curses */
 	initscr();
@@ -252,14 +252,14 @@ main(int argc, char *argv[])
 		if (getch() == 'q')
 			die = 1;
 
-		spectrum_update(&fr);
-		spectrum_draw(&fr);
+		update(&fr);
+		draw(&fr);
 	}
 
 out:
 	endwin(); /* restore terminal */
 
-	spectrum_done(&fr); /* destroy context */
+	done(&fr); /* destroy context */
 
 	return (0);
 }
