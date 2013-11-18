@@ -159,7 +159,7 @@ draw(struct frame *fr)
 #define BANDCUT 0.8
 	freqs_per_col = (nsamples / 2) / fr->width * BANDCUT;
 #undef BANDCUT
-	
+
 	/* scale each frequency to screen */
 #define BARSCALE 0.2
 	for (i = 0; i < nsamples / 2; i++) {
@@ -172,7 +172,7 @@ draw(struct frame *fr)
 		fr->res[i] *= fr->height * BARSCALE;
 	}
 #undef BARSCALE
-	
+
 	erase();
 	attron(A_BOLD);
 	for (i = 0; i < fr->width; i++) {
