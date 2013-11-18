@@ -25,7 +25,6 @@ struct frame {
 	int fd;
 	size_t width;
 	size_t height;
-	size_t nresult;
 	int16_t *buf;
 	unsigned *res;
 	double *in;
@@ -63,23 +62,29 @@ init(struct frame *fr)
 	if (fr->fd == -1)
 		err(1, "open");
 
-	fr->nresult = nsamples / 2 + 1;
 	fr->buf = malloc(nsamples * sizeof(int16_t));
-	fr->res = malloc(fr->nresult * sizeof(unsigned));
+	fr->res = malloc(nsamples / 2 * sizeof(unsigned));
 	fr->in = fftw_malloc(nsamples * sizeof(double));
-	fr->out = fftw_malloc(fr->nresult * sizeof(fftw_complex));
-	fr->plan = fftw_plan_dft_r2c_1d(nsamples, fr->in, fr->out, FFTW_ESTIMATE);
+	fr->out = fftw_malloc(nsamples * sizeof(fftw_complex));
+
+	memset(fr->buf, 0, nsamples * sizeof(int16_t));
+	memset(fr->res, 0, nsamples / 2 * sizeof(unsigned));
+	memset(fr->in, 0, nsamples * sizeof(double));
+	memset(fr->out, 0, nsamples * sizeof(fftw_complex));
+
+	fr->plan = fftw_plan_dft_r2c_1d(nsamples, fr->in, fr->out,
+					FFTW_ESTIMATE);
 }
 
 static void
 done(struct frame *fr)
 {
 	fftw_destroy_plan(fr->plan);
-	fftw_free(fr->in);
 	fftw_free(fr->out);
+	fftw_free(fr->in);
 
-	free(fr->buf);
 	free(fr->res);
+	free(fr->buf);
 
 	close(fr->fd);
 }
@@ -96,11 +101,14 @@ update(struct frame *fr)
 
 	gotsamples = n / sizeof(int16_t);
 
-	for (i = 0, j = 0; i < nsamples; i++) {
-		if (j < gotsamples)
-			fr->in[i] = fr->buf[j++];
-		else
-			fr->in[i] = 0;
+	for (i = 0, j = 0; i < nsamples; i++, j++) {
+		fr->in[i] = 0;
+		if (j < gotsamples) {
+			/* average the two channels */
+			fr->in[i] = fr->buf[i * 2 + 0];
+			fr->in[i] += fr->buf[i * 2 + 1];
+			fr->in[i] /= 2;
+		}
 	}
 
 	fftw_execute(fr->plan);
@@ -149,12 +157,12 @@ draw(struct frame *fr)
 
 	/* take most of the left part of the band */
 #define BANDCUT 0.9
-	freqs_per_col = fr->nresult / fr->width * BANDCUT;
+	freqs_per_col = (nsamples / 2) / fr->width * BANDCUT;
 #undef BANDCUT
 	
 	/* scale each frequency to screen */
 #define BARSCALE 0.2
-	for (i = 0; i < fr->nresult; i++)
+	for (i = 0; i < nsamples / 2; i++)
 		fr->res[i] = sqrt(fr->out[i][0] * fr->out[i][0] +
 		                  fr->out[i][1] * fr->out[i][1])
 		             / 100000 * fr->height * BARSCALE;
