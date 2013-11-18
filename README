@@ -11,7 +11,7 @@ because it's the only one supported for now.
         type "fifo"
         name "Pipe"
         path "/tmp/audio.fifo"
-        format "44100:16:1"
+        format "44100:16:2"
     }
 
 Then start spectrum with:
