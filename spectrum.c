@@ -185,8 +185,8 @@ draw(struct frame *fr)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [-hc] [mpdfifo]\n", argv0);
-	fprintf(stderr, "fifo default path is `/tmp/mpd.fifo'\n");
+	fprintf(stderr, "usage: %s [-hc] [fifo]\n", argv0);
+	fprintf(stderr, "default fifo path is `/tmp/audio.fifo'\n");
 	exit(1);
 }
 
