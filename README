@@ -22,4 +22,8 @@ Alternatively specify the path of your mpd fifo with:
 
     $ spectrum <path-to-fifo>
 
+To try out spectrum with color support try:
+
+    $ xterm -bg black -fa "Monospace:pixelsize=12" -e ./spectrum -c
+
 Enjoy!
