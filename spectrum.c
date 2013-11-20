@@ -170,7 +170,7 @@ draw(struct frame *fr)
 		fr->res[i] = sqrt(fr->out[i][0] * fr->out[i][0] +
 		                  fr->out[i][1] * fr->out[i][1]);
 		/* normalize it */
-		fr->res[i] /= nsamples;
+		fr->res[i] /= (nsamples / 2);
 		/* scale it */
 		fr->res[i] *= fr->height * BARSCALE;
 	}
