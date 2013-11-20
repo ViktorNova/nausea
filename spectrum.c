@@ -56,6 +56,18 @@ static struct color_range {
 };
 
 static void
+clearall(struct frame *fr)
+{
+	unsigned i;
+
+	for (i = 0; i < nsamples / 2; i++) {
+		fr->in[i] = 0.;
+		fr->out[i][0] = 0.;
+		fr->out[i][1] = 0.;
+	}
+}
+
+static void
 init(struct frame *fr)
 {
 	unsigned i;
@@ -69,11 +81,7 @@ init(struct frame *fr)
 	fr->in = fftw_malloc(nsamples / 2 * sizeof(double));
 	fr->out = fftw_malloc(nsamples / 2 * sizeof(fftw_complex));
 
-	for (i = 0; i < nsamples / 2; i++) {
-		fr->in[i] = 0.;
-		fr->out[i][0] = 0.;
-		fr->out[i][1] = 0.;
-	}
+	clearall(fr);
 
 	fr->plan = fftw_plan_dft_r2c_1d(nsamples / 2, fr->in, fr->out,
 					FFTW_ESTIMATE);
@@ -99,8 +107,10 @@ update(struct frame *fr)
 	unsigned i;
 
 	n = read(fr->fd, fr->buf, nsamples * sizeof(int16_t));
-	if (n == -1)
+	if (n == -1) {
+		clearall(fr);
 		return;
+	}
 
 	gotsamples = n / sizeof(int16_t);
 
