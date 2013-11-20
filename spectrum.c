@@ -58,21 +58,24 @@ static struct color_range {
 static void
 init(struct frame *fr)
 {
+	unsigned i;
+
 	fr->fd = open(fname, O_RDONLY | O_NONBLOCK);
 	if (fr->fd == -1)
 		err(1, "open");
 
 	fr->buf = malloc(nsamples * sizeof(int16_t));
 	fr->res = malloc(nsamples / 2 * sizeof(unsigned));
-	fr->in = fftw_malloc(nsamples * sizeof(double));
-	fr->out = fftw_malloc(nsamples * sizeof(fftw_complex));
+	fr->in = fftw_malloc(nsamples / 2 * sizeof(double));
+	fr->out = fftw_malloc(nsamples / 2 * sizeof(fftw_complex));
 
-	memset(fr->buf, 0, nsamples * sizeof(int16_t));
-	memset(fr->res, 0, nsamples / 2 * sizeof(unsigned));
-	memset(fr->in, 0, nsamples * sizeof(double));
-	memset(fr->out, 0, nsamples * sizeof(fftw_complex));
+	for (i = 0; i < nsamples / 2; i++) {
+		fr->in[i] = 0.;
+		fr->out[i][0] = 0.;
+		fr->out[i][1] = 0.;
+	}
 
-	fr->plan = fftw_plan_dft_r2c_1d(nsamples, fr->in, fr->out,
+	fr->plan = fftw_plan_dft_r2c_1d(nsamples / 2, fr->in, fr->out,
 					FFTW_ESTIMATE);
 }
 
@@ -93,7 +96,7 @@ static void
 update(struct frame *fr)
 {
 	ssize_t n, gotsamples;
-	unsigned i, j;
+	unsigned i;
 
 	n = read(fr->fd, fr->buf, nsamples * sizeof(int16_t));
 	if (n == -1)
@@ -101,9 +104,9 @@ update(struct frame *fr)
 
 	gotsamples = n / sizeof(int16_t);
 
-	for (i = 0, j = 0; i < nsamples; i++, j++) {
-		fr->in[i] = 0;
-		if (j < gotsamples) {
+	for (i = 0; i < nsamples / 2; i++) {
+		fr->in[i] = 0.;
+		if (i < gotsamples) {
 			/* average the two channels */
 			fr->in[i] = fr->buf[i * 2 + 0];
 			fr->in[i] += fr->buf[i * 2 + 1];
