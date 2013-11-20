@@ -145,18 +145,18 @@ draw(struct frame *fr)
 	unsigned freqs_per_col;
 	struct color_range *cr;
 
+	/* read dimensions to catch window resize */
+	fr->width = COLS;
+	fr->height = LINES;
+
 	if (colors) {
 		/* scale color ranges */
 		for (i = 0; i < LEN(color_ranges); i++) {
 			cr = &color_ranges[i];
-			cr->scaled_min = cr->min * LINES / 100;
-			cr->scaled_max = cr->max * LINES / 100;
+			cr->scaled_min = cr->min * fr->height / 100;
+			cr->scaled_max = cr->max * fr->height / 100;
 		}
 	}
-
-	/* read dimensions to catch window resize */
-	fr->width = COLS;
-	fr->height = LINES;
 
 	/* take most of the left part of the band */
 #define BANDCUT 0.5
