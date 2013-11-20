@@ -159,7 +159,7 @@ draw(struct frame *fr)
 	fr->height = LINES;
 
 	/* take most of the left part of the band */
-#define BANDCUT 0.8
+#define BANDCUT 0.5
 	freqs_per_col = (nsamples / 2) / fr->width * BANDCUT;
 #undef BANDCUT
 
