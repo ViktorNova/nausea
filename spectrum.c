@@ -84,7 +84,6 @@ init(struct frame *fr)
 	if (fr->fd == -1)
 		err(1, "open");
 
-	fr->peaks = malloc(1 * sizeof(struct peak));
 	fr->buf = malloc(nsamples * sizeof(int16_t));
 	fr->res = malloc(nsamples / 2 * sizeof(unsigned));
 	fr->in = fftw_malloc(nsamples / 2 * sizeof(double));
@@ -173,8 +172,7 @@ draw(struct frame *fr)
 	if (peaks) {
 		/* change in width needs new peaks */
 		if (fr->width != fr->width_old) {
-			free(fr->peaks);
-			fr->peaks = calloc(fr->width, sizeof(struct peak));
+			fr->peaks = realloc(fr->peaks, fr->width * sizeof(struct peak));
 			for (i = 0; i < fr->width; i++)
 				fr->peaks[i].pos = PK_HIDDEN;
 			fr->width_old = fr->width;
