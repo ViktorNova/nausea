@@ -119,7 +119,7 @@ update(struct frame *fr)
 
 	for (i = 0; i < nsamples / 2; i++) {
 		fr->in[i] = 0.;
-		if (i < gotsamples) {
+		if (i < gotsamples / 2) {
 			/* average the two channels */
 			fr->in[i] = fr->buf[i * 2 + 0];
 			fr->in[i] += fr->buf[i * 2 + 1];
