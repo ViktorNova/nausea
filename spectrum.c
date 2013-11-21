@@ -70,8 +70,6 @@ clearall(struct frame *fr)
 static void
 init(struct frame *fr)
 {
-	unsigned i;
-
 	fr->fd = open(fname, O_RDONLY | O_NONBLOCK);
 	if (fr->fd == -1)
 		err(1, "open");
