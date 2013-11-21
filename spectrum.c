@@ -23,18 +23,12 @@ static int colors;
 static int peaks;
 static int die;
 
-/* each bar has a peak that drops */
-struct peak {
-	int age;
-	int pos;
-#define PK_HIDDEN -1
-};
-
 struct frame {
 	int fd;
 	size_t width, width_old;
 	size_t height;
-	struct peak *peaks;
+	int *peak;
+#define PK_HIDDEN -1
 	int16_t *buf;
 	unsigned *res;
 	double *in;
@@ -104,7 +98,7 @@ done(struct frame *fr)
 
 	free(fr->res);
 	free(fr->buf);
-	free(fr->peaks);
+	free(fr->peak);
 
 	close(fr->fd);
 }
@@ -163,7 +157,6 @@ draw(struct frame *fr)
 	unsigned i, j;
 	unsigned freqs_per_col;
 	struct color_range *cr;
-	struct peak *pk;
 
 	/* read dimensions to catch window resize */
 	fr->width = COLS;
@@ -172,9 +165,9 @@ draw(struct frame *fr)
 	if (peaks) {
 		/* change in width needs new peaks */
 		if (fr->width != fr->width_old) {
-			fr->peaks = realloc(fr->peaks, fr->width * sizeof(struct peak));
+			fr->peak = realloc(fr->peak, fr->width * sizeof(int));
 			for (i = 0; i < fr->width; i++)
-				fr->peaks[i].pos = PK_HIDDEN;
+				fr->peak[i] = PK_HIDDEN;
 			fr->width_old = fr->width;
 		}
 	}
@@ -220,24 +213,16 @@ draw(struct frame *fr)
 		yend = MIN(bar_height + ybegin, fr->height);
 #undef MIN
 
-		pk = &fr->peaks[i];
-
-#define EVERY 1
-#define DROP 1
 		/* update state for peaks
-		 * every n time units drop by m lines */
+		 * every time they drop by one lines */
 		if (peaks) {
-			if (pk->pos >= ybegin) {
-				pk->age = 0;
-				pk->pos = ybegin;
-			} else {
-				pk->age++;
-				if ((pk->age % EVERY) == 0)
-					pk->pos += DROP;
-			}
+			if (fr->peak[i] >= ybegin)
+				fr->peak[i] = ybegin;
+			else
+				fr->peak[i]++;
 			/* this freq died out */
-			if (fr->height == ybegin && pk->pos == ybegin)
-				pk->pos = PK_HIDDEN;
+			if (fr->height == ybegin && fr->peak[i] == ybegin)
+				fr->peak[i] = PK_HIDDEN;
 		}
 #undef EVERY
 #undef DROP
@@ -251,11 +236,11 @@ draw(struct frame *fr)
 		}
 
 		/* output peaks */
-		if (peaks && pk->pos != PK_HIDDEN) {
-			move(pk->pos, i);
-			setcolor(1, pk->pos);
+		if (peaks && fr->peak[i] != PK_HIDDEN) {
+			move(fr->peak[i], i);
+			setcolor(1, fr->peak[i]);
 			printw("%c", peak);
-			setcolor(0, pk->pos);
+			setcolor(0, fr->peak[i]);
 		}
 	}
 	attroff(A_BOLD);
