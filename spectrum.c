@@ -27,6 +27,7 @@ static int die;
 struct peak {
 	int age;
 	int pos;
+#define PK_HIDDEN -1
 };
 
 struct frame {
@@ -174,6 +175,8 @@ draw(struct frame *fr)
 		if (fr->width != fr->width_old) {
 			free(fr->peaks);
 			fr->peaks = calloc(fr->width, sizeof(struct peak));
+			for (i = 0; i < fr->width; i++)
+				fr->peaks[i].pos = PK_HIDDEN;
 			fr->width_old = fr->width;
 		}
 	}
@@ -219,20 +222,27 @@ draw(struct frame *fr)
 		yend = MIN(bar_height + ybegin, fr->height);
 #undef MIN
 
-		/* update state for peaks */
-#define WAIT 1
 		pk = &fr->peaks[i];
+
+#define EVERY 1
+#define DROP 1
+		/* update state for peaks
+		 * every n time units drop by m lines */
 		if (peaks) {
 			if (pk->pos >= ybegin) {
 				pk->age = 0;
 				pk->pos = ybegin;
 			} else {
 				pk->age++;
-				if ((pk->age % WAIT) == 0)
-					pk->pos++;
+				if ((pk->age % EVERY) == 0)
+					pk->pos += DROP;
 			}
+			/* this freq died out */
+			if (fr->height == ybegin && pk->pos == ybegin)
+				pk->pos = PK_HIDDEN;
 		}
-#undef WAIT
+#undef EVERY
+#undef DROP
 
 		/* output symbols */
 		for (j = ybegin; j < yend; j++) {
@@ -243,7 +253,7 @@ draw(struct frame *fr)
 		}
 
 		/* output peaks */
-		if (peaks) {
+		if (peaks && pk->pos != PK_HIDDEN) {
 			move(pk->pos, i);
 			printw("%c", peak);
 		}
