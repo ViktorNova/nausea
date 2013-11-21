@@ -1,4 +1,4 @@
-/* $Id: spectrum.c,v 1.3 2013/11/18 11:01:51 lostd Exp $ */
+/* $Id: spectrum.c,v 1.5 2013/11/20 15:20:44 lostd Exp $ */
 
 #include <err.h>
 #include <curses.h>
@@ -16,15 +16,24 @@
 static unsigned msec = 1000 / 25; /* 25 fps */
 static unsigned nsamples = 44100 * 2; /* stereo */
 static char symbol = '|';
+static char peak = '.';
 static char *fname = "/tmp/audio.fifo";
 static char *argv0;
 static int colors;
+static int peaks;
 static int die;
+
+/* each bar has a peak that drops */
+struct peak {
+	int age;
+	int pos;
+};
 
 struct frame {
 	int fd;
-	size_t width;
+	size_t width, width_old;
 	size_t height;
+	struct peak *peaks;
 	int16_t *buf;
 	unsigned *res;
 	double *in;
@@ -74,6 +83,7 @@ init(struct frame *fr)
 	if (fr->fd == -1)
 		err(1, "open");
 
+	fr->peaks = malloc(1 * sizeof(struct peak));
 	fr->buf = malloc(nsamples * sizeof(int16_t));
 	fr->res = malloc(nsamples / 2 * sizeof(unsigned));
 	fr->in = fftw_malloc(nsamples / 2 * sizeof(double));
@@ -94,6 +104,7 @@ done(struct frame *fr)
 
 	free(fr->res);
 	free(fr->buf);
+	free(fr->peaks);
 
 	close(fr->fd);
 }
@@ -152,10 +163,20 @@ draw(struct frame *fr)
 	unsigned i, j;
 	unsigned freqs_per_col;
 	struct color_range *cr;
+	struct peak *pk;
 
 	/* read dimensions to catch window resize */
 	fr->width = COLS;
 	fr->height = LINES;
+
+	if (peaks) {
+		/* change in width needs new peaks */
+		if (fr->width != fr->width_old) {
+			free(fr->peaks);
+			fr->peaks = calloc(fr->width, sizeof(struct peak));
+			fr->width_old = fr->width;
+		}
+	}
 
 	if (colors) {
 		/* scale color ranges */
@@ -198,12 +219,33 @@ draw(struct frame *fr)
 		yend = MIN(bar_height + ybegin, fr->height);
 #undef MIN
 
+		/* update state for peaks */
+#define WAIT 1
+		pk = &fr->peaks[i];
+		if (peaks) {
+			if (pk->pos >= ybegin) {
+				pk->age = 0;
+				pk->pos = ybegin;
+			} else {
+				pk->age++;
+				if ((pk->age % WAIT) == 0)
+					pk->pos++;
+			}
+		}
+#undef WAIT
+
 		/* output symbols */
 		for (j = ybegin; j < yend; j++) {
 			move(j, i);
 			setcolor(1, j);
 			printw("%c", symbol);
 			setcolor(0, j);
+		}
+
+		/* output peaks */
+		if (peaks) {
+			move(pk->pos, i);
+			printw("%c", peak);
 		}
 	}
 	attroff(A_BOLD);
@@ -232,6 +274,9 @@ main(int argc, char *argv[])
 			switch (c) {
 			case 'c':
 				colors = 1;
+				break;
+			case 'p':
+				peaks = 1;
 				break;
 			case 'h':
 				/* fall-through */
