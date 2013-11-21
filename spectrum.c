@@ -222,8 +222,6 @@ draw(struct frame *fr)
 			if (fr->height == ybegin && fr->peak[i] == ybegin)
 				fr->peak[i] = PK_HIDDEN;
 		}
-#undef EVERY
-#undef DROP
 
 		/* output symbols */
 		for (j = ybegin; j < yend; j++) {
