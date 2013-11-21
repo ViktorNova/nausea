@@ -250,7 +250,7 @@ draw(struct frame *fr)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [-hc] [fifo]\n", argv0);
+	fprintf(stderr, "usage: %s [-hcp] [fifo]\n", argv0);
 	fprintf(stderr, "default fifo path is `/tmp/audio.fifo'\n");
 	exit(1);
 }
