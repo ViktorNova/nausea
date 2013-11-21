@@ -243,6 +243,22 @@ draw(struct frame *fr)
 	refresh();
 }
 
+static int
+initcolors(void)
+{
+	unsigned i;
+	struct color_range *cr;
+
+	if (has_colors() == FALSE)
+		return -1;
+	start_color();
+	for (i = 0; i < LEN(color_ranges); i++) {
+		cr = &color_ranges[i];
+		init_pair(cr->pair, cr->fg, cr->bg);
+	}
+	return 0;
+}
+
 static void
 usage(void)
 {
@@ -255,9 +271,7 @@ int
 main(int argc, char *argv[])
 {
 	int c;
-	unsigned i;
 	struct frame fr;
-	struct color_range *cr;
 
 	argv0 = argv[0];
 	while (--argc > 0 && (*++argv)[0] == '-')
@@ -293,17 +307,10 @@ main(int argc, char *argv[])
 	curs_set(FALSE); /* hide cursor */
 	timeout(msec);
 
-	if (colors) {
-		if (has_colors() == FALSE) {
-			endwin();
-			done(&fr);
-			errx(1, "terminal does not support colors");
-		}
-		start_color();
-		for (i = 0; i < LEN(color_ranges); i++) {
-			cr = &color_ranges[i];
-			init_pair(cr->pair, cr->fg, cr->bg);
-		}
+	if (colors && initcolors() < 0) {
+		endwin();
+		done(&fr);
+		errx(1, "your terminal does not support colors");
 	}
 
 	while (!die) {
