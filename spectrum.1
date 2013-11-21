@@ -1,0 +1,20 @@
+.TH SPECTRUM 1
+.SH NAME
+spectrum \- curses audio visualizer
+.SH SYNOPSIS
+.B spectrum [ \-hcp ] [ fifo ]
+.SH DESCRIPTION
+.B spectrum
+performs a discrete fourier transform and plots the spectrogram in real time
+using curses.  The current implementation expects the input stream to be 44.1kHz,
+16-bit little endian and 2 channels.  The default fifo path is `/tmp/audio.fifo'.
+.SH OPTIONS
+.TP
+.B \-h
+Show usage line.
+.TP
+.B \-c
+Enable color support.
+.TP
+.B \-p
+Enable falling peaks.
