@@ -1,5 +1,3 @@
-/* $Id: spectrum.c,v 1.5 2013/11/20 15:20:44 lostd Exp $ */
-
 #include <err.h>
 #include <curses.h>
 #include <fcntl.h>
