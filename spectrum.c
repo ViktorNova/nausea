@@ -213,8 +213,8 @@ draw(struct frame *fr)
 		yend = MIN(bar_height + ybegin, fr->height);
 #undef MIN
 
-		/* update state for peaks
-		 * every time they drop by one lines */
+		/* If the current freq reaches the peak, the peak is
+		 * updated to that height, else it drops by one line. */
 		if (peaks) {
 			if (fr->peak[i] >= ybegin)
 				fr->peak[i] = ybegin;
