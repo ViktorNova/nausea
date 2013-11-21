@@ -255,7 +255,9 @@ draw(struct frame *fr)
 		/* output peaks */
 		if (peaks && pk->pos != PK_HIDDEN) {
 			move(pk->pos, i);
+			setcolor(1, pk->pos);
 			printw("%c", peak);
+			setcolor(0, pk->pos);
 		}
 	}
 	attroff(A_BOLD);
