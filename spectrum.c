@@ -121,7 +121,7 @@ update(struct frame *fr)
 			/* average the two channels */
 			fr->in[i] = fr->buf[i * 2 + 0];
 			fr->in[i] += fr->buf[i * 2 + 1];
-			fr->in[i] /= 2;
+			fr->in[i] /= 2.;
 		}
 	}
 
