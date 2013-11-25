@@ -203,12 +203,15 @@ draw(struct frame *fr)
 		size_t bar_height = 0;
 		size_t ybegin, yend;
 
-#define MIN(x, y) ((x) < (y) ? (x) : (y))
+		/* compute bar height */
 		for (j = 0; j < freqs_per_col; j++)
 			bar_height += fr->res[i * freqs_per_col + j];
-		bar_height = MIN(bar_height / freqs_per_col, fr->height);
-		ybegin = fr->height - bar_height;
-		yend = MIN(bar_height + ybegin, fr->height);
+		bar_height /= freqs_per_col;
+
+		/* we draw from top to bottom */
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+		ybegin = fr->height - MIN(bar_height, fr->height);
+		yend = fr->height;
 #undef MIN
 
 		/* If the current freq reaches the peak, the peak is
