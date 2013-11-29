@@ -74,7 +74,7 @@ init(struct frame *fr)
 {
 	fr->fd = open(fname, O_RDONLY | O_NONBLOCK);
 	if (fr->fd == -1)
-		err(1, "open");
+		err(1, "open %s", fname);
 
 	fr->buf = malloc(nsamples * sizeof(int16_t));
 	fr->res = malloc(nsamples / 2 * sizeof(unsigned));
