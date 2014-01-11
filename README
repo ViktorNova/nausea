@@ -26,4 +26,8 @@ To try out spectrum with color support try:
 
     $ xterm -bg black -fa "Monospace:pixelsize=12" -e ./spectrum -c
 
+Some test sound files can be found here:
+
+    http://www.audiocheck.net/testtones_sinesweep20-20k.php
+
 Enjoy!
