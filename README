@@ -1,4 +1,4 @@
-# spectrum
+# nausea
 
 This is a simple audio spectrum visualizer.  It works well with the mpd
 music player daemon.  It was originally inspired by the visualizer
@@ -14,17 +14,17 @@ because it's the only one supported for now.
         format "44100:16:2"
     }
 
-Then start spectrum with:
+Then start the program with:
 
-    $ spectrum
+    $ nausea
 
 Alternatively specify the path of your mpd fifo with:
 
-    $ spectrum <path-to-fifo>
+    $ nausea <path-to-fifo>
 
-To try out spectrum with color support try:
+To try it out with color support try:
 
-    $ xterm -bg black -fa "Monospace:pixelsize=12" -e ./spectrum -c
+    $ xterm -bg black -fa "Monospace:pixelsize=12" -e ./nausea -c
 
 Some test sound files can be found here:
 
