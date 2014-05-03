@@ -317,8 +317,21 @@ main(int argc, char *argv[])
 	}
 
 	while (!die) {
-		if (getch() == 'q')
+		switch (getch()) {
+		case 'q':
 			die = 1;
+			break;
+		case 'c':
+			colors = ~colors;
+			if (colors)
+				(void)initcolors();
+			else
+				(void)use_default_colors();
+			break;
+		case 'p':
+			peaks = ~peaks;
+			break;
+		}
 
 		update(&fr);
 		draw(&fr);
