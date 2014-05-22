@@ -265,7 +265,7 @@ draw_wave(struct frame *fr)
 {
 	unsigned i, j;
 	unsigned samples_per_col;
-	double pt_pos, pt_pos_prev = 0;
+	double pt_pos, pt_pos_prev = 0, pt_pos_mid;
 
 	/* read dimensions to catch window resize */
 	fr->width = COLS;
@@ -291,20 +291,20 @@ draw_wave(struct frame *fr)
 		/* normalize it */
 		pt_pos /= INT16_MAX;
 		/* scale it */
-#define PTSCALE 0.6
-		pt_pos *= fr->height * PTSCALE;
+#define PTSCALE 0.8
+		pt_pos *= (fr->height / 2) * PTSCALE;
 #undef PTSCALE
-		/* center it */
-		y = fr->height / 2 + pt_pos;
 
 		/* output point */
+		y = fr->height / 2 + pt_pos; /* centering */
 		move(y, i);
 		printw("%c", point);
 
-		/* Output another point by averaging with the previous
+		/* Output a helper point by averaging with the previous
 		 * position.  This creates a nice effect.  We don't care
-		 * about overlaps since it is of the same symbol. */
-		y = fr->height / 2 + (pt_pos + pt_pos_prev) / 2;
+		 * about overlaps with the current point. */
+		pt_pos_mid = (pt_pos_prev + pt_pos) / 2.0;
+		y = fr->height / 2 + pt_pos_mid; /* centering */
 		move(y, i);
 		printw("%c", point);
 
