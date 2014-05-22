@@ -14,9 +14,9 @@
 
 static unsigned msec = 1000 / 25; /* 25 fps */
 static unsigned nsamples = 44100 * 2; /* stereo */
-static char symbol = '|';
-static char peak = '.';
-static char point = '=';
+static char chbar = '|';
+static char chpeak = '.';
+static char chpoint = '=';
 static char *fname = "/tmp/audio.fifo";
 static char *argv0;
 static int colors;
@@ -240,11 +240,11 @@ draw_spectrum(struct frame *fr)
 				fr->peak[i] = PK_HIDDEN;
 		}
 
-		/* output symbols */
+		/* output bars */
 		for (j = ybegin; j < yend; j++) {
 			move(j, i);
 			setcolor(1, j);
-			printw("%c", symbol);
+			printw("%c", chbar);
 			setcolor(0, j);
 		}
 
@@ -252,7 +252,7 @@ draw_spectrum(struct frame *fr)
 		if (peaks && fr->peak[i] != PK_HIDDEN) {
 			move(fr->peak[i], i);
 			setcolor(1, fr->peak[i]);
-			printw("%c", peak);
+			printw("%c", chpeak);
 			setcolor(0, fr->peak[i]);
 		}
 	}
@@ -295,10 +295,10 @@ draw_wave(struct frame *fr)
 		pt_pos *= (fr->height / 2) * PTSCALE;
 #undef PTSCALE
 
-		/* output point */
+		/* output points */
 		y = fr->height / 2 + pt_pos; /* centering */
 		move(y, i);
-		printw("%c", point);
+		printw("%c", chpoint);
 
 		/* Output a helper point by averaging with the previous
 		 * position.  This creates a nice effect.  We don't care
@@ -306,7 +306,7 @@ draw_wave(struct frame *fr)
 		pt_pos_mid = (pt_pos_prev + pt_pos) / 2.0;
 		y = fr->height / 2 + pt_pos_mid; /* centering */
 		move(y, i);
-		printw("%c", point);
+		printw("%c", chpoint);
 
 		pt_pos_prev = pt_pos;
 	}
