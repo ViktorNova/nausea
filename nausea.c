@@ -45,7 +45,7 @@ static void draw_wave(struct frame *fr);
 static void (* draw)(struct frame *fr) = draw_spectrum;
 
 /* We assume the screen is 100 pixels in the y direction.
- * To follow the curses convetion (0, 0) is in the top left
+ * To follow the curses convention (0, 0) is in the top left
  * corner of the screen.  The `min' and `max' values correspond
  * to percentages.  To illustrate this the [0, 20) range gives
  * the top 20% of the screen to the color red.  These values
