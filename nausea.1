@@ -12,8 +12,9 @@
 The
 .Nm
 program performs a discrete fourier transform and plots the spectrogram
-in real time using curses.  The current implementation expects the input
-stream to be 44.1kHz, 16-bit little endian and 2 channels.  The default
+in real time using curses.  It can also just display the audio waveform.
+The current implementation expects the input stream to be 44.1kHz,
+16-bit little endian and 2 channels.  The default
 .Ar fifo
 path is
 .Pa /tmp/audio.fifo .
