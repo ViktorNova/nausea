@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -15,6 +16,7 @@ static unsigned msec = 1000 / 25; /* 25 fps */
 static unsigned nsamples = 44100 * 2; /* stereo */
 static char symbol = '|';
 static char peak = '.';
+static char point = '=';
 static char *fname = "/tmp/audio.fifo";
 static char *argv0;
 static int colors;
@@ -30,9 +32,17 @@ struct frame {
 	int16_t *buf;
 	unsigned *res;
 	double *in;
+	ssize_t gotsamples;
 	fftw_complex *out;
 	fftw_plan plan;
 };
+
+/* Supported visualizations:
+ * 1 -- spectrum
+ * 2 -- wave */
+static void draw_spectrum(struct frame *fr);
+static void draw_wave(struct frame *fr);
+static void (* draw)(struct frame *fr) = draw_spectrum;
 
 /* We assume the screen is 100 pixels in the y direction.
  * To follow the curses convetion (0, 0) is in the top left
@@ -61,6 +71,8 @@ static void
 clearall(struct frame *fr)
 {
 	unsigned i;
+
+	fr->gotsamples = 0;
 
 	for (i = 0; i < nsamples / 2; i++) {
 		fr->in[i] = 0.;
@@ -104,7 +116,7 @@ done(struct frame *fr)
 static void
 update(struct frame *fr)
 {
-	ssize_t n, gotsamples;
+	ssize_t n;
 	unsigned i;
 
 	n = read(fr->fd, fr->buf, nsamples * sizeof(int16_t));
@@ -113,11 +125,11 @@ update(struct frame *fr)
 		return;
 	}
 
-	gotsamples = n / sizeof(int16_t);
+	fr->gotsamples = n / sizeof(int16_t);
 
 	for (i = 0; i < nsamples / 2; i++) {
 		fr->in[i] = 0.;
-		if (i < gotsamples / 2) {
+		if (i < fr->gotsamples / 2) {
 			/* average the two channels */
 			fr->in[i] = fr->buf[i * 2 + 0];
 			fr->in[i] += fr->buf[i * 2 + 1];
@@ -125,7 +137,9 @@ update(struct frame *fr)
 		}
 	}
 
-	fftw_execute(fr->plan);
+	/* compute the DFT if needed */
+	if (draw == draw_spectrum)
+		fftw_execute(fr->plan);
 }
 
 static void
@@ -150,7 +164,7 @@ setcolor(int on, int y)
 }
 
 static void
-draw(struct frame *fr)
+draw_spectrum(struct frame *fr)
 {
 	unsigned i, j;
 	unsigned freqs_per_col;
@@ -246,6 +260,60 @@ draw(struct frame *fr)
 	refresh();
 }
 
+static void
+draw_wave(struct frame *fr)
+{
+	unsigned i, j;
+	unsigned samples_per_col;
+	double pt_pos, pt_pos_prev = 0;
+
+	/* read dimensions to catch window resize */
+	fr->width = COLS;
+	fr->height = LINES;
+
+	erase();
+
+	/* not enough samples */
+	if (fr->gotsamples < fr->width)
+		return;
+
+	samples_per_col = (fr->gotsamples / 2) / fr->width;
+
+	attron(A_BOLD);
+	for (i = 0; i < fr->width; i++) {
+		size_t y;
+
+		/* compute point position */
+		pt_pos = 0;
+		for (j = 0; j < samples_per_col; j++)
+			pt_pos += fr->in[i * samples_per_col + j];
+		pt_pos /= samples_per_col;
+		/* normalize it */
+		pt_pos /= INT16_MAX;
+		/* scale it */
+#define PTSCALE 0.6
+		pt_pos *= fr->height * PTSCALE;
+#undef PTSCALE
+		/* center it */
+		y = fr->height / 2 + pt_pos;
+
+		/* output point */
+		move(y, i);
+		printw("%c", point);
+
+		/* Output another point by averaging with the previous
+		 * position.  This creates a nice effect.  We don't care
+		 * about overlaps since it is of the same symbol. */
+		y = fr->height / 2 + (pt_pos + pt_pos_prev) / 2;
+		move(y, i);
+		printw("%c", point);
+
+		pt_pos_prev = pt_pos;
+	}
+	attroff(A_BOLD);
+	refresh();
+}
+
 static int
 initcolors(void)
 {
@@ -330,6 +398,12 @@ main(int argc, char *argv[])
 			break;
 		case 'p':
 			peaks = ~peaks;
+			break;
+		case '1':
+			draw = draw_spectrum;
+			break;
+		case '2':
+			draw = draw_wave;
 			break;
 		}
 
