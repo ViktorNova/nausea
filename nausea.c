@@ -200,6 +200,7 @@ draw_spectrum(struct frame *fr)
 	/* scale each frequency to screen */
 #define BARSCALE 0.2
 	for (i = 0; i < nsamples / 2; i++) {
+		/* complex absolute value */
 		fr->res[i] = cabs(fr->out[i]);
 		/* normalize it */
 		fr->res[i] /= (nsamples / 2);
