@@ -1,4 +1,5 @@
 #include <err.h>
+#include <complex.h>
 #include <curses.h>
 #include <fcntl.h>
 #include <math.h>
@@ -33,7 +34,7 @@ struct frame {
 	unsigned *res;
 	double *in;
 	ssize_t gotsamples;
-	fftw_complex *out;
+	complex *out;
 	fftw_plan plan;
 };
 
@@ -76,8 +77,7 @@ clearall(struct frame *fr)
 
 	for (i = 0; i < nsamples / 2; i++) {
 		fr->in[i] = 0.;
-		fr->out[i][0] = 0.;
-		fr->out[i][1] = 0.;
+		fr->out[i] = 0. + 0. * I;
 	}
 }
 
@@ -90,8 +90,8 @@ init(struct frame *fr)
 
 	fr->buf = malloc(nsamples * sizeof(int16_t));
 	fr->res = malloc(nsamples / 2 * sizeof(unsigned));
-	fr->in = fftw_malloc(nsamples / 2 * sizeof(double));
-	fr->out = fftw_malloc(nsamples / 2 * sizeof(fftw_complex));
+	fr->in = malloc(nsamples / 2 * sizeof(double));
+	fr->out = malloc(nsamples / 2 * sizeof(complex));
 
 	clearall(fr);
 
@@ -103,8 +103,8 @@ static void
 done(struct frame *fr)
 {
 	fftw_destroy_plan(fr->plan);
-	fftw_free(fr->out);
-	fftw_free(fr->in);
+	free(fr->out);
+	free(fr->in);
 
 	free(fr->res);
 	free(fr->buf);
@@ -201,9 +201,7 @@ draw_spectrum(struct frame *fr)
 	/* scale each frequency to screen */
 #define BARSCALE 0.2
 	for (i = 0; i < nsamples / 2; i++) {
-		/* cabs() essentially */
-		fr->res[i] = sqrt(fr->out[i][0] * fr->out[i][0] +
-		                  fr->out[i][1] * fr->out[i][1]);
+		fr->res[i] = cabs(fr->out[i]);
 		/* normalize it */
 		fr->res[i] /= (nsamples / 2);
 		/* scale it */
