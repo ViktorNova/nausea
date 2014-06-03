@@ -2,7 +2,6 @@
 #include <complex.h>
 #include <curses.h>
 #include <fcntl.h>
-#include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
