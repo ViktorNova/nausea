@@ -312,20 +312,17 @@ draw_wave(struct frame *fr)
 	refresh();
 }
 
-static int
+static void
 initcolors(void)
 {
 	unsigned i;
 	struct color_range *cr;
 
-	if (has_colors() == FALSE)
-		return -1;
 	start_color();
 	for (i = 0; i < LEN(color_ranges); i++) {
 		cr = &color_ranges[i];
 		init_pair(cr->pair, cr->fg, cr->bg);
 	}
-	return 0;
 }
 
 static void
@@ -376,7 +373,7 @@ main(int argc, char *argv[])
 	curs_set(FALSE); /* hide cursor */
 	timeout(msec);
 
-	if (colors && initcolors() < 0) {
+	if (colors && has_colors() == FALSE) {
 		endwin();
 		done(&fr);
 		errx(1, "your terminal does not support colors");
@@ -388,11 +385,8 @@ main(int argc, char *argv[])
 			die = 1;
 			break;
 		case 'c':
-			colors = ~colors;
-			if (colors)
-				(void)initcolors();
-			else
-				(void)use_default_colors();
+			if (has_colors() == TRUE)
+				colors = ~colors;
 			break;
 		case 'p':
 			peaks = ~peaks;
@@ -404,6 +398,12 @@ main(int argc, char *argv[])
 			draw = draw_wave;
 			break;
 		}
+
+		/* only spectrum supports colors */
+		if (colors && (draw == draw_spectrum))
+			initcolors();
+		else
+			(void)use_default_colors();
 
 		update(&fr);
 		draw(&fr);
