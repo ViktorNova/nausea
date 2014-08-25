@@ -386,10 +386,10 @@ main(int argc, char *argv[])
 			break;
 		case 'c':
 			if (has_colors() == TRUE)
-				colors = ~colors;
+				colors = !colors;
 			break;
 		case 'p':
-			peaks = ~peaks;
+			peaks = !peaks;
 			break;
 		case '1':
 			draw = draw_spectrum;
