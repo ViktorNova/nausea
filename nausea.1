@@ -6,7 +6,7 @@
 .Nd curses audio visualizer
 .Sh SYNOPSIS
 .Nm nausea
-.Op Fl hcpkl
+.Op Fl hcpklb
 .Op Fl d Ar num
 .Op Ar fifo
 .Sh DESCRIPTION
@@ -34,6 +34,8 @@ Enable falling peaks in the spectrum visualization.
 Keep state in the fountain visualization.
 .It Fl l
 Go left in the fountain visualization.
+.It Fl b
+Enable bounce mode in the fountain visualization.
 .El
 .Pp
 Exposed runtime options:
@@ -52,4 +54,6 @@ Toggle falling peaks.
 Toggle keep state.
 .It l
 Toggle direction.
+.It b
+Toggle bounce mode.
 .El

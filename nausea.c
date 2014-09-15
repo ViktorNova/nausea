@@ -24,6 +24,7 @@ static int colors;
 static int peaks;
 static int keep;
 static int left;
+static int bounce;
 static int die;
 
 struct frame {
@@ -399,11 +400,24 @@ draw_fountain(struct frame *fr)
 		}
 	}
 
+	/* current column bounces back */
+	if (bounce)
+		if (left)
+			if (col == 0)
+				left = 0;
+			else
+				col--;
+		else
+			if (col == fr->width - 1)
+				left = 1;
+			else
+				col++;
 	/* current column wraps around */
-	if (left)
-		col = (col == 0) ? fr->width - 1 : col - 1;
 	else
-		col = (col == fr->width - 1) ? 0 : col + 1;
+		if (left)
+			col = (col == 0) ? fr->width - 1 : col - 1;
+		else
+			col = (col == fr->width - 1) ? 0 : col + 1;
 
 	attroff(A_BOLD);
 	refresh();
@@ -425,7 +439,7 @@ initcolors(void)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [-hcpkl] [-d num] [fifo]\n", argv0);
+	fprintf(stderr, "usage: %s [-hcpklb] [-d num] [fifo]\n", argv0);
 	fprintf(stderr, "default fifo path is `/tmp/audio.fifo'\n");
 	exit(1);
 }
@@ -468,6 +482,9 @@ main(int argc, char *argv[])
 				break;
 			case 'l':
 				left = 1;
+				break;
+			case 'b':
+				bounce = 1;
 				break;
 			case 'h':
 				/* fall-through */
@@ -518,6 +535,9 @@ main(int argc, char *argv[])
 			break;
 		case 'l':
 			left = !left;
+			break;
+		case 'b':
+			bounce = !bounce;
 			break;
 		case '1':
 			draw = draw_spectrum;
