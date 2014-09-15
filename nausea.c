@@ -21,6 +21,7 @@ static char *fname = "/tmp/audio.fifo";
 static char *argv0;
 static int colors;
 static int peaks;
+static int keep;
 static int die;
 
 struct frame {
@@ -28,6 +29,7 @@ struct frame {
 	size_t width, width_old;
 	size_t height;
 	int *peak;
+	int *sav;
 #define PK_HIDDEN -1
 	int16_t *buf;
 	unsigned *res;
@@ -39,9 +41,11 @@ struct frame {
 
 /* Supported visualizations:
  * 1 -- spectrum
- * 2 -- wave */
+ * 2 -- wave
+ * 2 -- fountain */
 static void draw_spectrum(struct frame *fr);
 static void draw_wave(struct frame *fr);
+static void draw_fountain(struct frame *fr);
 static void (* draw)(struct frame *fr) = draw_spectrum;
 
 /* We assume the screen is 100 pixels in the y direction.
@@ -108,6 +112,7 @@ done(struct frame *fr)
 	free(fr->res);
 	free(fr->buf);
 	free(fr->peak);
+	free(fr->sav);
 
 	close(fr->fd);
 }
@@ -137,7 +142,7 @@ update(struct frame *fr)
 	}
 
 	/* compute the DFT if needed */
-	if (draw == draw_spectrum)
+	if (draw == draw_spectrum || draw == draw_fountain)
 		fftw_execute(fr->plan);
 }
 
@@ -313,6 +318,95 @@ draw_wave(struct frame *fr)
 }
 
 static void
+draw_fountain(struct frame *fr)
+{
+	unsigned i, j;
+	struct color_range *cr;
+	static int col = 0;
+	size_t bar_height = 0;
+	unsigned freqs;
+
+	/* read dimensions to catch window resize */
+	fr->width = COLS;
+	fr->height = LINES;
+
+	/* change in width needs new keep state */
+	if (fr->width != fr->width_old) {
+		fr->sav = realloc(fr->sav, fr->width * sizeof(int));
+		for (i = 0; i < fr->width; i++)
+			fr->sav[i] = fr->height;
+		fr->width_old = fr->width;
+	}
+
+	if (colors) {
+		/* scale color ranges */
+		for (i = 0; i < LEN(color_ranges); i++) {
+			cr = &color_ranges[i];
+			cr->scaled_min = cr->min * fr->height / 100;
+			cr->scaled_max = cr->max * fr->height / 100;
+		}
+	}
+
+	/* scale each frequency to screen */
+#define BARSCALE 0.3
+	for (i = 0; i < nsamples / 2; i++) {
+		/* complex absolute value */
+		fr->res[i] = cabs(fr->out[i]);
+		/* normalize it */
+		fr->res[i] /= (nsamples / 2);
+		/* scale it */
+		fr->res[i] *= fr->height * BARSCALE;
+	}
+#undef BARSCALE
+
+	/* take most of the left part of the band */
+#define BANDCUT 0.5
+	freqs = (nsamples / 2) * BANDCUT;
+#undef BANDCUT
+
+	/* compute bar height */
+	for (j = 0; j < freqs; j++)
+		bar_height += fr->res[j];
+	bar_height /= freqs;
+
+	erase();
+	attron(A_BOLD);
+
+	/* current column wraps around */
+	col %= fr->width;
+
+	for (i = 0; i < fr->width; i++) {
+		size_t ybegin, yend;
+
+		/* we draw from top to bottom */
+		if (i == col) {
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+			ybegin = fr->height - MIN(bar_height, fr->height);
+			fr->sav[col] = ybegin;
+#undef MIN
+		} else {
+			if (keep)
+				ybegin = fr->sav[i];
+			else
+				ybegin = fr->sav[i]++;
+		}
+		yend = fr->height;
+
+		/* output bars */
+		for (j = ybegin; j < yend; j++) {
+			move(j, i);
+			setcolor(1, j);
+			printw("%c", chbar);
+			setcolor(0, j);
+		}
+	}
+	col++;
+
+	attroff(A_BOLD);
+	refresh();
+}
+
+static void
 initcolors(void)
 {
 	unsigned i;
@@ -328,7 +422,7 @@ initcolors(void)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [-hcp] [fifo]\n", argv0);
+	fprintf(stderr, "usage: %s [-hcpk] [fifo]\n", argv0);
 	fprintf(stderr, "default fifo path is `/tmp/audio.fifo'\n");
 	exit(1);
 }
@@ -338,6 +432,7 @@ main(int argc, char *argv[])
 {
 	int c;
 	struct frame fr;
+	void *draw_prev = draw;
 
 	argv0 = argv[0];
 	while (--argc > 0 && (*++argv)[0] == '-')
@@ -348,6 +443,9 @@ main(int argc, char *argv[])
 				break;
 			case 'p':
 				peaks = 1;
+				break;
+			case 'k':
+				keep = 1;
 				break;
 			case 'h':
 				/* fall-through */
@@ -391,22 +489,35 @@ main(int argc, char *argv[])
 		case 'p':
 			peaks = !peaks;
 			break;
+		case 'k':
+			keep = !keep;
+			break;
 		case '1':
 			draw = draw_spectrum;
 			break;
 		case '2':
 			draw = draw_wave;
 			break;
+		case '3':
+			draw = draw_fountain;
+			break;
 		}
 
-		/* only spectrum supports colors */
-		if (colors && (draw == draw_spectrum))
+		/* detect visualization change */
+		if (draw != draw_prev)
+			fr.width_old = 0;
+
+		/* only spectrum and fountain support colors */
+		if (colors &&
+		    (draw == draw_spectrum || draw == draw_fountain))
 			initcolors();
 		else
 			(void)use_default_colors();
 
 		update(&fr);
 		draw(&fr);
+
+		draw_prev = draw;
 	}
 
 	endwin(); /* restore terminal */
