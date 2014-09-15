@@ -425,7 +425,7 @@ initcolors(void)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [-hcpk] [-d num] [fifo]\n", argv0);
+	fprintf(stderr, "usage: %s [-hcpkl] [-d num] [fifo]\n", argv0);
 	fprintf(stderr, "default fifo path is `/tmp/audio.fifo'\n");
 	exit(1);
 }
