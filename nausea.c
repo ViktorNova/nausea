@@ -23,6 +23,7 @@ static char *argv0;
 static int colors;
 static int peaks;
 static int keep;
+static int left;
 static int die;
 
 struct frame {
@@ -371,7 +372,7 @@ draw_fountain(struct frame *fr)
 	erase();
 	attron(A_BOLD);
 
-	/* current column wraps around */
+	/* ensure we are inside the frame */
 	col %= fr->width;
 
 	for (i = 0; i < fr->width; i++) {
@@ -397,7 +398,12 @@ draw_fountain(struct frame *fr)
 			setcolor(0, j);
 		}
 	}
-	col++;
+
+	/* current column wraps around */
+	if (left)
+		col = (col == 0) ? fr->width - 1 : col - 1;
+	else
+		col = (col == fr->width - 1) ? 0 : col + 1;
 
 	attroff(A_BOLD);
 	refresh();
@@ -460,6 +466,9 @@ main(int argc, char *argv[])
 			case 'k':
 				keep = 1;
 				break;
+			case 'l':
+				left = 1;
+				break;
 			case 'h':
 				/* fall-through */
 			default:
@@ -506,6 +515,9 @@ main(int argc, char *argv[])
 			break;
 		case 'k':
 			keep = !keep;
+			break;
+		case 'l':
+			left = !left;
 			break;
 		case '1':
 			draw = draw_spectrum;
