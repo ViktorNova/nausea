@@ -1,4 +1,4 @@
-.Dd Nov 22, 2013
+.Dd Sep 15, 2014
 .Dt NAUSEA 1
 .Os
 .Sh NAME
@@ -6,7 +6,8 @@
 .Nd curses audio visualizer
 .Sh SYNOPSIS
 .Nm nausea
-.Op Fl hcp
+.Op Fl hcpk
+.Op Fl d Ar num
 .Op Ar fifo
 .Sh DESCRIPTION
 The
@@ -23,6 +24,8 @@ The options are as follows:
 .Bl -tag -width Ds
 .It Fl h
 Show usage line.
+.It Fl d Ar num
+Choose a visualization using its number from below.
 .It Fl c
 Enable color.
 .It Fl p
@@ -43,4 +46,6 @@ Select the fountain visualization.
 Toggle color.
 .It p
 Toggle falling peaks.
+.It k
+Toggle keep state.
 .El

@@ -422,7 +422,7 @@ initcolors(void)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [-hcpk] [fifo]\n", argv0);
+	fprintf(stderr, "usage: %s [-hcpk] [-d num] [fifo]\n", argv0);
 	fprintf(stderr, "default fifo path is `/tmp/audio.fifo'\n");
 	exit(1);
 }
@@ -432,12 +432,28 @@ main(int argc, char *argv[])
 {
 	int c;
 	struct frame fr;
-	void *draw_prev = draw;
+	void *draw_prev;
 
 	argv0 = argv[0];
 	while (--argc > 0 && (*++argv)[0] == '-')
 		while ((c = *++argv[0]))
 			switch (c) {
+			case 'd':
+				if (*++argv == NULL)
+					usage();
+				argc--;
+				switch (atoi(argv[0])) {
+				case 1:
+					draw = draw_spectrum;
+					break;
+				case 2:
+					draw = draw_wave;
+					break;
+				case 3:
+					draw = draw_fountain;
+					break;
+				}
+				break;
 			case 'c':
 				colors = 1;
 				break;
@@ -476,6 +492,8 @@ main(int argc, char *argv[])
 		done(&fr);
 		errx(1, "your terminal does not support colors");
 	}
+
+	draw_prev = draw;
 
 	while (!die) {
 		switch (getch()) {
