@@ -2,7 +2,6 @@ PREFIX = /usr/local
 MANPREFIX = $(PREFIX)/man
 
 CPPFLAGS = -I/usr/local/include
-CFLAGS = -g
 LDFLAGS = -L/usr/local/lib
 LDLIBS = -lm -lcurses -lfftw3
 
