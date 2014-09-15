@@ -11,6 +11,7 @@
 #include <fftw3.h>
 
 #define LEN(x) (sizeof (x) / sizeof *(x))
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
 
 static unsigned msec = 1000 / 25; /* 25 fps */
 static unsigned nsamples = 44100 * 2; /* stereo */
@@ -226,10 +227,8 @@ draw_spectrum(struct frame *fr)
 		bar_height /= freqs_per_col;
 
 		/* we draw from top to bottom */
-#define MIN(x, y) ((x) < (y) ? (x) : (y))
 		ybegin = fr->height - MIN(bar_height, fr->height);
 		yend = fr->height;
-#undef MIN
 
 		/* If the current freq reaches the peak, the peak is
 		 * updated to that height, else it drops by one line. */
@@ -380,10 +379,8 @@ draw_fountain(struct frame *fr)
 
 		/* we draw from top to bottom */
 		if (i == col) {
-#define MIN(x, y) ((x) < (y) ? (x) : (y))
 			ybegin = fr->height - MIN(bar_height, fr->height);
 			fr->sav[col] = ybegin;
-#undef MIN
 		} else {
 			if (keep)
 				ybegin = fr->sav[i];
