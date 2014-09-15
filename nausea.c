@@ -442,14 +442,14 @@ main(int argc, char *argv[])
 				if (*++argv == NULL)
 					usage();
 				argc--;
-				switch (atoi(argv[0])) {
-				case 1:
+				switch (*argv[0]) {
+				case '1':
 					draw = draw_spectrum;
 					break;
-				case 2:
+				case '2':
 					draw = draw_wave;
 					break;
-				case 3:
+				case '3':
 					draw = draw_fountain;
 					break;
 				}
