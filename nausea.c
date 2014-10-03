@@ -69,9 +69,9 @@ static struct color_range {
 	int scaled_min;
 	int scaled_max;
 } color_ranges[] = {
-	{ 1, 0,  20,  COLOR_RED,    COLOR_BLACK, 0, 0 },
-	{ 2, 20, 60,  COLOR_YELLOW, COLOR_BLACK, 0, 0 },
-	{ 3, 60, 100, COLOR_GREEN,  COLOR_BLACK, 0, 0 }
+	{ 1, 0,  20,  COLOR_RED,    -1, 0, 0 },
+	{ 2, 20, 60,  COLOR_YELLOW, -1, 0, 0 },
+	{ 3, 60, 100, COLOR_GREEN,  -1, 0, 0 }
 };
 
 static void
@@ -509,6 +509,7 @@ main(int argc, char *argv[])
 	keypad(stdscr, TRUE);
 	curs_set(FALSE); /* hide cursor */
 	timeout(msec);
+	use_default_colors();
 
 	if (colors && has_colors() == FALSE) {
 		endwin();
