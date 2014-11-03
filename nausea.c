@@ -2,22 +2,26 @@
 #include <complex.h>
 #include <curses.h>
 #include <fcntl.h>
+#include <locale.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <wchar.h>
 
 #include <fftw3.h>
 
 #define LEN(x) (sizeof (x) / sizeof *(x))
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 
+#include "config.h"
+
 static unsigned msec = 1000 / 25; /* 25 fps */
 static unsigned nsamples = 44100 * 2; /* stereo */
-static char chbar = '|';
-static char chpeak = '.';
-static char chpoint = '=';
+static wchar_t chbar = CHBAR;
+static wchar_t chpeak = CHPEAK;
+static wchar_t chpoint = CHPOINT;
 static char *fname = "/tmp/audio.fifo";
 static char *argv0;
 static int colors;
@@ -248,7 +252,7 @@ draw_spectrum(struct frame *fr)
 		for (j = ybegin; j < yend; j++) {
 			move(j, i);
 			setcolor(1, j);
-			printw("%c", chbar);
+			printw("%lc", chbar);
 			setcolor(0, j);
 		}
 
@@ -256,7 +260,7 @@ draw_spectrum(struct frame *fr)
 		if (peaks && fr->peak[i] != PK_HIDDEN) {
 			move(fr->peak[i], i);
 			setcolor(1, fr->peak[i]);
-			printw("%c", chpeak);
+			printw("%lc", chpeak);
 			setcolor(0, fr->peak[i]);
 		}
 	}
@@ -302,7 +306,7 @@ draw_wave(struct frame *fr)
 		/* output points */
 		y = fr->height / 2 + pt_pos; /* centering */
 		move(y, i);
-		printw("%c", chpoint);
+		printw("%lc", chpoint);
 
 		/* Output a helper point by averaging with the previous
 		 * position.  This creates a nice effect.  We don't care
@@ -310,7 +314,7 @@ draw_wave(struct frame *fr)
 		pt_pos_mid = (pt_pos_prev + pt_pos) / 2.0;
 		y = fr->height / 2 + pt_pos_mid; /* centering */
 		move(y, i);
-		printw("%c", chpoint);
+		printw("%lc", chpoint);
 
 		pt_pos_prev = pt_pos;
 	}
@@ -395,7 +399,7 @@ draw_fountain(struct frame *fr)
 		for (j = ybegin; j < yend; j++) {
 			move(j, i);
 			setcolor(1, j);
-			printw("%c", chbar);
+			printw("%lc", chbar);
 			setcolor(0, j);
 		}
 	}
@@ -450,6 +454,7 @@ main(int argc, char *argv[])
 	int c;
 	struct frame fr;
 	void *draw_prev;
+	int fd;
 
 	argv0 = argv[0];
 	while (--argc > 0 && (*++argv)[0] == '-')
@@ -499,6 +504,8 @@ main(int argc, char *argv[])
 	/* init fftw3 */
 	memset(&fr, 0, sizeof(fr));
 	init(&fr);
+
+	setlocale(LC_ALL, "");
 
 	/* init curses */
 	initscr();
