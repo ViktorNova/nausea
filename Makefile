@@ -10,6 +10,9 @@ NAME = nausea
 
 all: $(NAME)
 
+$(NAME): $(OBJ)
+	$(CC) $(LDFLAGS) -o $@ $(OBJ) $(LDLIBS)
+
 nausea.o: config.h
 
 install: all
