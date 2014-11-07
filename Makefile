@@ -16,10 +16,10 @@ $(BIN): $(OBJ)
 nausea.o: config.h
 
 install: all
-	install -d $(DESTDIR)$(PREFIX)/bin
-	install $(BIN) $(DESTDIR)$(PREFIX)/bin/$(BIN)
-	install -d $(DESTDIR)$(MANPREFIX)/man1
-	install $(BIN).1 $(DESTDIR)$(MANPREFIX)/man1
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	cp -f $(BIN) $(DESTDIR)$(PREFIX)/bin
+	mkdir -p $(DESTDIR)$(MANPREFIX)/man1
+	cp -f $(BIN).1 $(DESTDIR)$(MANPREFIX)/man1
 
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/$(BIN)
