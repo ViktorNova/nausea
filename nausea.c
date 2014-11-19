@@ -53,7 +53,16 @@ struct frame {
 static void draw_spectrum(struct frame *fr);
 static void draw_wave(struct frame *fr);
 static void draw_fountain(struct frame *fr);
-static void (* draw)(struct frame *fr) = draw_spectrum;
+static struct visual {
+	void (* draw)(struct frame *fr);
+	int dft;   /* needs the DFT */
+	int color; /* supports colors */
+} visuals[] = {
+	{draw_spectrum, 1, 1},
+	{draw_wave,     0, 0},
+	{draw_fountain, 1, 1},
+};
+static int vidx = 0; /* default visual index */
 
 /* We assume the screen is 100 pixels in the y direction.
  * To follow the curses convention (0, 0) is in the top left
@@ -149,7 +158,7 @@ update(struct frame *fr)
 	}
 
 	/* compute the DFT if needed */
-	if (draw == draw_spectrum || draw == draw_fountain)
+	if (visuals[vidx].dft)
 		fftw_execute(fr->plan);
 }
 
@@ -453,7 +462,7 @@ main(int argc, char *argv[])
 {
 	int c;
 	struct frame fr;
-	void *draw_prev;
+	int vidx_prev;
 	int fd;
 
 	argv0 = argv[0];
@@ -466,13 +475,13 @@ main(int argc, char *argv[])
 				argc--;
 				switch (*argv[0]) {
 				case '1':
-					draw = draw_spectrum;
+					vidx = 0;
 					break;
 				case '2':
-					draw = draw_wave;
+					vidx = 1;
 					break;
 				case '3':
-					draw = draw_fountain;
+					vidx = 2;
 					break;
 				}
 				break;
@@ -524,7 +533,7 @@ main(int argc, char *argv[])
 		errx(1, "your terminal does not support colors");
 	}
 
-	draw_prev = draw;
+	vidx_prev = vidx;
 
 	while (!die) {
 		switch (getch()) {
@@ -548,31 +557,42 @@ main(int argc, char *argv[])
 			bounce = !bounce;
 			break;
 		case '1':
-			draw = draw_spectrum;
+			vidx = 0;
 			break;
 		case '2':
-			draw = draw_wave;
+			vidx = 1;
 			break;
 		case '3':
-			draw = draw_fountain;
+			vidx = 2;
+			break;
+		case 'n':
+		case KEY_RIGHT:
+			vidx = vidx == (LEN(visuals) - 1)
+			    ? 0
+			    : vidx + 1 % LEN(visuals);
+			break;
+		case 'N':
+		case KEY_LEFT:
+			vidx = vidx == 0
+			    ? LEN(visuals) - 1
+			    : vidx - 1 % LEN(visuals);
 			break;
 		}
 
 		/* detect visualization change */
-		if (draw != draw_prev)
+		if (vidx != vidx_prev)
 			fr.width_old = 0;
 
 		/* only spectrum and fountain support colors */
-		if (colors &&
-		    (draw == draw_spectrum || draw == draw_fountain))
+		if (colors && visuals[vidx].color)
 			initcolors();
 		else
 			(void)use_default_colors();
 
 		update(&fr);
-		draw(&fr);
+		visuals[vidx].draw(&fr);
 
-		draw_prev = draw;
+		vidx_prev = vidx;
 	}
 
 	endwin(); /* restore terminal */
