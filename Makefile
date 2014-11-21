@@ -3,7 +3,7 @@ MANPREFIX = $(PREFIX)/man
 
 CPPFLAGS = -I/usr/local/include
 LDFLAGS = -L/usr/local/lib
-LDLIBS = -lm -lncursesw -lfftw3
+LDLIBS = -lm -lncursesw -lffts
 
 OBJ = nausea.o
 BIN = nausea

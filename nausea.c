@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <wchar.h>
 
-#include <fftw3.h>
+#include <ffts/ffts.h>
 
 #define LEN(x) (sizeof (x) / sizeof *(x))
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
@@ -43,7 +43,7 @@ struct frame {
 	double *in;
 	ssize_t gotsamples;
 	complex *out;
-	fftw_plan plan;
+	ffts_plan_t *plan;
 };
 
 /* Supported visualizations:
@@ -114,14 +114,13 @@ init(struct frame *fr)
 
 	clearall(fr);
 
-	fr->plan = fftw_plan_dft_r2c_1d(nsamples / 2, fr->in, fr->out,
-					FFTW_ESTIMATE);
+	fr->plan = ffts_init_1d_real(nsamples / 2, -1);
 }
 
 static void
 done(struct frame *fr)
 {
-	fftw_destroy_plan(fr->plan);
+	ffts_free(fr->plan);
 	free(fr->out);
 	free(fr->in);
 
@@ -159,7 +158,7 @@ update(struct frame *fr)
 
 	/* compute the DFT if needed */
 	if (visuals[vidx].dft)
-		fftw_execute(fr->plan);
+		ffts_execute(fr->plan, fr->in, fr->out);
 }
 
 static void
