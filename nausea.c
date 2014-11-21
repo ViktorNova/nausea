@@ -567,15 +567,11 @@ main(int argc, char *argv[])
 			break;
 		case 'n':
 		case KEY_RIGHT:
-			vidx = vidx == (LEN(visuals) - 1)
-			    ? 0
-			    : vidx + 1 % LEN(visuals);
+			vidx = vidx == (LEN(visuals) - 1) ? 0 : vidx + 1;
 			break;
 		case 'N':
 		case KEY_LEFT:
-			vidx = vidx == 0
-			    ? LEN(visuals) - 1
-			    : vidx - 1 % LEN(visuals);
+			vidx = vidx == 0 ? LEN(visuals) - 1 : vidx - 1;
 			break;
 		}
 
