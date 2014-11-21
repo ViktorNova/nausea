@@ -510,7 +510,7 @@ main(int argc, char *argv[])
 	else if (argc > 1)
 		usage();
 
-	/* init fftw3 */
+	/* init frame context */
 	memset(&fr, 0, sizeof(fr));
 	init(&fr);
 
