@@ -81,10 +81,21 @@ static struct color_range {
 	/* these are calculated internally, do not set */
 	int scaled_min;
 	int scaled_max;
+
+  /* These are the colors that you can use:
+   * COLOR_BLACK
+   * COLOR_RED
+   * COLOR_GREEN
+   * COLOR_YELLOW
+   * COLOR_BLUE
+   * COLOR_MAGENTA
+   * COLOR_CYAN
+   * COLOR_WHITE  */
+  
 } color_ranges[] = {
 	{ 1, 0,  20,  COLOR_RED,    -1, 0, 0 },
-	{ 2, 20, 60,  COLOR_YELLOW, -1, 0, 0 },
-	{ 3, 60, 100, COLOR_GREEN,  -1, 0, 0 }
+	{ 2, 20, 60,  COLOR_BLUE, -1, 0, 0 },
+	{ 3, 60, 100, COLOR_CYAN,  -1, 0, 0 }
 };
 
 static void
