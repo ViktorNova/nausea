@@ -1,8 +1,18 @@
 # nausea
 
 This is a simple audio spectrum visualizer.  It works well with the mpd
-music player daemon.  It was originally inspired by the visualizer
+music player daemon, as well as anything that can play or record audio to stdout.
+
+It was originally inspired by the visualizer
 screen of ncmpcpp.  It depends on the fftw3 and curses libraries.
+
+To visualize system audio, you must first make a fifo using mkfifo, and then use
+something like aplay or arecord to redirect audio into your fifo:
+
+````
+mkfifo /tmp/audio.fifo
+aplay > /tmp/audio.fifo
+````
 
 You need to add the following to your mpd.conf.  The format is important
 because it's the only one supported for now.
