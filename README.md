@@ -42,26 +42,30 @@ To try it out with color support try:
 ### DESCRIPTION
 The nausea program performs a discrete fourier transform and plots the spectrogram in real time using curses. It can also just display the audio waveform. The current implementation expects the input stream to be 44.1kHz, 16-bit little endian and 2 channels. The default fifo path is /tmp/audio.fifo.
 
-#### The options are as follows:
-−h              Show usage line.  
-−d num          Choose a visualization using its number from below.  
-−c              Enable color.  
-−p              Enable falling peaks in the spectrum visualization.  
-−k              Keep state in the fountain visualization.  
-−l              Go left in the fountain visualization.  
-−b              Enable bounce mode in the fountain visualization.  
+#### Commandline options
+Flag				|Description
+----------------|------------------------------------------------------------
+−h				|Show usage line.  
+−d num			|Choose a visualization using its number from below.  
+−c				|Enable color.  
+−p				|Enable falling peaks in the spectrum visualization.  
+−k				|Keep state in the fountain visualization.  
+−l				|Go left in the fountain visualization.  
+−b				|Enable bounce mode in the fountain visualization.  
 
-#### Exposed runtime options:
-1               Select the spectrum visualization.  
-2               Select the wave visualization.  
-3               Select the fountain visualization.  
-c               Toggle color.  
-p               Toggle falling peaks.  
-k               Toggle keep state.  
-l               Toggle direction.  
-b               Toggle bounce mode.  
-n or [Right]    Cycle visualizations in ascending order.  
-N or [Left]     Cycle visualizations in descending order.  
+#### Active hotkeys while nausea is running
+Key				|Action
+----------------|------------------------------------------------------------
+1				|Select the spectrum visualization.  
+2				|Select the wave visualization.  
+3				|Select the fountain visualization.  
+c				|Toggle color.  
+p				|Toggle falling peaks.  
+k				|Toggle keep state.  
+l				|Toggle direction.  
+b				|Toggle bounce mode.  
+n or [Right]    |Cycle visualizations in ascending order.  
+N or [Left]     |Cycle visualizations in descending order.  
 
 
 Enjoy!
